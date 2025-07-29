@@ -1,11 +1,11 @@
-const form = document.getElementById("orderForm");
-const popup = document.getElementById("popup");
+const form   = document.getElementById("orderForm");
+const popup  = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
 
-/* Заполняем выпадающие списки: "-", "1…6" */
+// Заполнение списков 1–6
 document.querySelectorAll("select.qty").forEach(sel => {
   sel.innerHTML = '<option value="" selected>-</option>' +
-    [1, 2, 3, 4, 5, 6].map(n => `<option value="${n}">${n}</option>`).join("");
+                  [1,2,3,4,5,6].map(n => `<option value="${n}">${n}</option>`).join("");
 });
 
 form.addEventListener("submit", async (e) => {
@@ -20,9 +20,7 @@ form.addEventListener("submit", async (e) => {
   const orderItems = [];
   document.querySelectorAll(".dish select.qty").forEach(sel => {
     const qty = parseInt(sel.value);
-    if (qty) {
-      orderItems.push(`${sel.name} — ${qty}`);
-    }
+    if (qty) orderItems.push(`${sel.name} — ${qty}`);
   });
 
   if (!orderItems.length) {
@@ -31,7 +29,8 @@ form.addEventListener("submit", async (e) => {
   }
 
   const orderHTML = orderItems
-    .map((item, i) => `<div style="text-align:left;">${i + 1}. ${item}</div>`).join("");
+    .map((item, i) => `<div style="text-align:left;">${i + 1}. ${item}</div>`)
+    .join("");
 
   popupMessage.innerHTML = `
     <div style="font-family:Arial;font-size:16px;">
@@ -51,21 +50,11 @@ form.addEventListener("submit", async (e) => {
 
 Заказ:
 ${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
-`;
+  `;
 
-  const telegramMessage = `
-<b>Новый заказ YUMMY</b>
-👤 Имя: ${name}
-📬 Контакт: ${contactMethod} - ${contactHandle}
-📝 Комментарий: ${comment || "–"}
-
-🍽 Заказ:
-${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
-`;
-
-  // Отправка на почту
+  // === 📧 Отправка на почту ===
   try {
-    const res = await fetch("https://api.web3forms.com/submit", {
+    const emailRes = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -78,24 +67,37 @@ ${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
       })
     }).then(r => r.json());
 
-    if (!res.success) alert("Ошибка отправки на почту. Проверьте форму.");
+    if (!emailRes.success) alert("Ошибка отправки по почте. Проверьте форму.");
   } catch (err) {
-    alert("Ошибка при отправке на почту: " + err.message);
+    alert("Ошибка отправки по почте: " + err.message);
   }
 
-  // Отправка в Telegram
+  // === 📩 Отправка в Telegram ===
   try {
-    await fetch("https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage", {
+    const chat_id = 495064227; // @yummyfood7
+    const telegramToken = "8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo";
+
+    const telegramText = `
+*Новый заказ YUMMY* 🍱
+
+👤 *Имя:* ${name}
+📞 *Контакт:* ${contactMethod} - ${contactHandle}
+📝 *Комментарий:* ${comment || "-"}
+📦 *Заказ:*
+${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
+    `.trim();
+
+    await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: "495064227", // @yummyfood7
-        text: telegramMessage,
-        parse_mode: "HTML"
+        chat_id: chat_id,
+        text: telegramText,
+        parse_mode: "Markdown"
       })
     });
   } catch (err) {
-    alert("Ошибка при отправке в Telegram: " + err.message);
+    alert("Ошибка отправки в Telegram: " + err.message);
   }
 
   form.reset();
