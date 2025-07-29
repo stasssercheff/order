@@ -51,6 +51,30 @@ form.addEventListener("submit", async (e) => {
 ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
 `;
 
+  // 🟡 ДОБАВЛЕНА отправка в Telegram:
+  const telegramMessage = `
+🍽️ *Новый заказ!*
+👤 Имя: ${name}
+📱 Связь: ${contactMethod} — ${contactHandle}
+📝 Комментарий: ${comment || '—'}
+
+🧾 Заказ:
+${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
+`;
+
+  fetch("https://api.telegram.org/bot7243715109:AAGT7QHu37NoSHBuBm9n891kZjHrAndW0m0/sendMessage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: "495064227",  // твой chat_id
+      text: telegramMessage,
+      parse_mode: "Markdown"
+    })
+  }).then(r => r.json())
+    .then(data => console.log("Telegram отправка:", data))
+    .catch(err => console.error("Ошибка Telegram:", err));
+
+  // 📨 Отправка на почту
   try {
     const res = await fetch("https://api.web3forms.com/submit",{
       method:"POST",
