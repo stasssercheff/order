@@ -1,11 +1,10 @@
-const form   = document.getElementById("orderForm");
-const popup  = document.getElementById("popup");
+const form = document.getElementById("orderForm");
+const popup = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
 
-/* заполняем каждый выпадающий список: "-,1…6" */
-document.querySelectorAll("select.qty").forEach(sel=>{
+document.querySelectorAll("select.qty").forEach(sel => {
   sel.innerHTML = '<option value="" selected>-</option>' +
-                  [1,2,3,4,5,6].map(n=>`<option value="${n}">${n}</option>`).join("");
+    [1, 2, 3, 4, 5, 6].map(n => `<option value="${n}">${n}</option>`).join("");
 });
 
 form.addEventListener("submit", async (e) => {
@@ -18,9 +17,11 @@ form.addEventListener("submit", async (e) => {
   const comment = fd.get("comment");
 
   const orderItems = [];
-  document.querySelectorAll(".dish select.qty").forEach(sel=>{
+  document.querySelectorAll(".dish select.qty").forEach(sel => {
     const qty = parseInt(sel.value);
-    if (qty) orderItems.push(`${sel.name} — ${qty}`);
+    if (qty) {
+      orderItems.push(`${sel.name} — ${qty}`);
+    }
   });
 
   if (!orderItems.length) {
@@ -28,8 +29,8 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const orderHTML = orderItems
-    .map((item,i)=>`<div style="text-align:left;">${i+1}. ${item}</div>`).join("");
+  const orderHTML = orderItems.map((item, i) =>
+    `<div style="text-align:left;">${i + 1}. ${item}</div>`).join("");
 
   popupMessage.innerHTML = `
     <div style="font-family:Arial;font-size:16px;">
@@ -48,10 +49,10 @@ form.addEventListener("submit", async (e) => {
 Комментарий: ${comment}
 
 Заказ:
-${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
-`;
+${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
+  `;
 
-  // === Отправка на почту ===
+  // === ОТПРАВКА EMAIL ===
   try {
     const res = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
@@ -68,36 +69,34 @@ ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
 
     if (!res.success) alert("Ошибка отправки. Проверьте форму.");
     else form.reset();
-  } catch(err) {
-    alert("Ошибка отправки на почту: " + err.message);
+  } catch (err) {
+    alert("Ошибка отправки (email): " + err.message);
   }
 
-  // === Отправка в Telegram ===
+  // === ОТПРАВКА В TELEGRAM ===
+  const tgMessage = `
+Новый заказ от ${name}
+Контакт: ${contactMethod} - ${contactHandle}
+Комментарий: ${comment}
+
+Заказ:
+${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
+  `;
+
   try {
-    const chatId = 495064227; // ID @yummyfood7
-    const telegramMessage = `
-Новый заказ YUMMY 🍱
-
-👤 Имя: ${name}
-📞 Контакт: ${contactMethod} - ${contactHandle}
-💬 Комментарий: ${comment || '—'}
-
-📋 Заказ:
-${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
-    `;
-
-    await fetch(`https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage`, {
+    await fetch("https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: chatId,
-        text: telegramMessage,
-        parse_mode: "HTML"
+        chat_id: 7408180116,
+        text: tgMessage
       })
     });
   } catch (err) {
-    console.warn("Ошибка отправки в Telegram: " + err.message);
+    console.error("Ошибка отправки в Telegram: ", err.message);
   }
 });
 
-function closePopup(){ popup.classList.add("hidden"); }
+function closePopup() {
+  popup.classList.add("hidden");
+}
