@@ -51,7 +51,7 @@ form.addEventListener("submit", async (e) => {
 ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
 `;
 
-  // 🟡 ДОБАВЛЕНА отправка в Telegram:
+  // Отправка в Telegram (обновлённый бот!)
   const telegramMessage = `
 🍽️ *Новый заказ!*
 👤 Имя: ${name}
@@ -62,11 +62,11 @@ ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
 ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
 `;
 
-  fetch("https://api.telegram.org/bot7243715109:AAGT7QHu37NoSHBuBm9n891kZjHrAndW0m0/sendMessage", {
+  fetch("https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id: "495064227",  // твой chat_id
+      chat_id: "495064227",  // временно личный, можешь позже заменить на chat_id группы/канала
       text: telegramMessage,
       parse_mode: "Markdown"
     })
@@ -74,7 +74,7 @@ ${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
     .then(data => console.log("Telegram отправка:", data))
     .catch(err => console.error("Ошибка Telegram:", err));
 
-  // 📨 Отправка на почту
+  // Отправка на почту (Web3Forms)
   try {
     const res = await fetch("https://api.web3forms.com/submit",{
       method:"POST",
