@@ -1,11 +1,11 @@
-const form   = document.getElementById("orderForm");
-const popup  = document.getElementById("popup");
+const form = document.getElementById("orderForm");
+const popup = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
 
-/* заполняем каждый выпадающий список: "-,1…6" */
-document.querySelectorAll("select.qty").forEach(sel=>{
+/* Заполняем выпадающие списки: "-", "1…6" */
+document.querySelectorAll("select.qty").forEach(sel => {
   sel.innerHTML = '<option value="" selected>-</option>' +
-                  [1,2,3,4,5,6].map(n=>`<option value="${n}">${n}</option>`).join("");
+    [1, 2, 3, 4, 5, 6].map(n => `<option value="${n}">${n}</option>`).join("");
 });
 
 form.addEventListener("submit", async (e) => {
@@ -18,9 +18,11 @@ form.addEventListener("submit", async (e) => {
   const comment = fd.get("comment");
 
   const orderItems = [];
-  document.querySelectorAll(".dish select.qty").forEach(sel=>{
-    const qty=parseInt(sel.value);
-    if(qty){ orderItems.push(`${sel.name} — ${qty}`); }
+  document.querySelectorAll(".dish select.qty").forEach(sel => {
+    const qty = parseInt(sel.value);
+    if (qty) {
+      orderItems.push(`${sel.name} — ${qty}`);
+    }
   });
 
   if (!orderItems.length) {
@@ -29,7 +31,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   const orderHTML = orderItems
-    .map((item,i)=>`<div style="text-align:left;">${i+1}. ${item}</div>`).join("");
+    .map((item, i) => `<div style="text-align:left;">${i + 1}. ${item}</div>`).join("");
 
   popupMessage.innerHTML = `
     <div style="font-family:Arial;font-size:16px;">
@@ -48,52 +50,57 @@ form.addEventListener("submit", async (e) => {
 Комментарий: ${comment}
 
 Заказ:
-${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
+${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
 `;
 
-  // Отправка в Telegram (обновлённый бот!)
   const telegramMessage = `
-🍽️ *Новый заказ!*
+<b>Новый заказ YUMMY</b>
 👤 Имя: ${name}
-📱 Связь: ${contactMethod} — ${contactHandle}
-📝 Комментарий: ${comment || '—'}
+📬 Контакт: ${contactMethod} - ${contactHandle}
+📝 Комментарий: ${comment || "–"}
 
-🧾 Заказ:
-${orderItems.map((x,i)=>`${i+1}. ${x}`).join("\n")}
+🍽 Заказ:
+${orderItems.map((x, i) => `${i + 1}. ${x}`).join("\n")}
 `;
 
-  fetch("https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: "495064227",  // временно личный, можешь позже заменить на chat_id группы/канала
-      text: telegramMessage,
-      parse_mode: "Markdown"
-    })
-  }).then(r => r.json())
-    .then(data => console.log("Telegram отправка:", data))
-    .catch(err => console.error("Ошибка Telegram:", err));
-
-  // Отправка на почту (Web3Forms)
+  // Отправка на почту
   try {
-    const res = await fetch("https://api.web3forms.com/submit",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        access_key:"14d92358-9b7a-4e16-b2a7-35e9ed71de43",
-        subject:"Новый заказ Yummy",
-        from_name:"Yummy Food Form",
-        message:emailBody,
-        reply_to:contactHandle,
-        name:name
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_key: "14d92358-9b7a-4e16-b2a7-35e9ed71de43",
+        subject: "Новый заказ Yummy",
+        from_name: "Yummy Food Form",
+        message: emailBody,
+        reply_to: contactHandle,
+        name: name
       })
-    }).then(r=>r.json());
+    }).then(r => r.json());
 
-    if(!res.success) alert("Ошибка отправки. Проверьте форму.");
-    else form.reset();
-  } catch(err){
-    alert("Ошибка отправки: "+err.message);
+    if (!res.success) alert("Ошибка отправки на почту. Проверьте форму.");
+  } catch (err) {
+    alert("Ошибка при отправке на почту: " + err.message);
   }
+
+  // Отправка в Telegram
+  try {
+    await fetch("https://api.telegram.org/bot8472899454:AAGiebKRLt6VMei4toaiW11bR2tIACuSFeo/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: "495064227", // @yummyfood7
+        text: telegramMessage,
+        parse_mode: "HTML"
+      })
+    });
+  } catch (err) {
+    alert("Ошибка при отправке в Telegram: " + err.message);
+  }
+
+  form.reset();
 });
 
-function closePopup(){ popup.classList.add("hidden"); }
+function closePopup() {
+  popup.classList.add("hidden");
+}
