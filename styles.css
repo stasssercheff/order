@@ -155,3 +155,9 @@ button:hover {
   line-height: 1.3;
   margin: 15px 0;
 }
+.kbju {
+  font-size: 40%; /* 40% от размера названия блюда */
+  line-height: 1.2;
+  color: #555;
+  margin-top: 2px;
+}
